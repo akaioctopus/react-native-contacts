@@ -28,6 +28,7 @@ import static android.provider.ContactsContract.CommonDataKinds.Note;
 import static android.provider.ContactsContract.CommonDataKinds.Website;
 import static android.provider.ContactsContract.CommonDataKinds.Im;
 import static android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
+import static android.provider.ContactsContract.RawContacts;
 
 public class ContactsProvider {
     public static final int ID_FOR_PROFILE_CONTACT = -1;
@@ -72,6 +73,8 @@ public class ContactsProvider {
         add(Im.DATA);
         add(Event.START_DATE);
         add(Event.TYPE);
+        add(ContactsContract.RawContacts.ACCOUNT_TYPE);
+        add(ContactsContract.RawContacts.ACCOUNT_NAME);
     }};
 
     private static final List<String> FULL_PROJECTION = new ArrayList<String>() {{
@@ -313,9 +316,25 @@ public class ContactsProvider {
             int columnIndexContactId = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID);
             int columnIndexId = cursor.getColumnIndex(ContactsContract.Data._ID);
             int columnIndexRawContactId = cursor.getColumnIndex(ContactsContract.Data.RAW_CONTACT_ID);
+            int columnIndexAccountName = cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME);
+            int columnIndexAccountType = cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_TYPE);
+
             String contactId;
             String id;
             String rawContactId;
+            String account_name;
+            String account_type;
+            
+            if (columnIndexAccountName != -1){
+                account_name = cursor.getString(columnIndexAccountName);
+            } else {
+                account_name = "";
+            }
+            if (columnIndexAccountType != -1){
+                account_type = cursor.getString(columnIndexAccountType);
+            } else {
+                account_type = "";
+            }
             if (columnIndexContactId != -1) {
                 contactId = cursor.getString(columnIndexContactId);
             } else {
@@ -345,6 +364,8 @@ public class ContactsProvider {
             String mimeType = cursor.getString(cursor.getColumnIndex(ContactsContract.Data.MIMETYPE));
             String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
             contact.rawContactId = rawContactId;
+            contact.account_name = account_name;
+            contact.account_type = account_type;
             if (!TextUtils.isEmpty(name) && TextUtils.isEmpty(contact.displayName)) {
                 contact.displayName = name;
             }
@@ -604,6 +625,8 @@ public class ContactsProvider {
         private List<Item> phones = new ArrayList<>();
         private List<PostalAddressItem> postalAddresses = new ArrayList<>();
         private Birthday birthday;
+        private String account_name;
+        private String account_type;
 
 
         public Contact(String contactId) {
@@ -626,6 +649,8 @@ public class ContactsProvider {
             contact.putString("note", note);
             contact.putBoolean("hasThumbnail", this.hasPhoto);
             contact.putString("thumbnailPath", photoUri == null ? "" : photoUri);
+            contact.putString("account_name", account_name);
+            contact.putString("account_type", account_type);
 
             WritableArray phoneNumbers = Arguments.createArray();
             for (Item item : phones) {
